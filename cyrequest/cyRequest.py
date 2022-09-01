@@ -348,7 +348,7 @@ def get(url=None, headers=None, verify=True, params=None, proxies={}, timeout=20
     requestData = {"AT": "GET", "url": url, "headers": headers, "verify": verify,"params":params, "proxies": proxies_,
                    "timeout": timeout, "allow_redirects": allow_redirects}
     if typer == 1:
-        session = pycurlToRetb()
+        session = pycurlToRetb(session)
     elif session == None:
         session = requests.session()
     e = None
@@ -395,7 +395,7 @@ def post(url=None, data=None, json=None, headers=None, verify=True, proxies={}, 
     requestData = {"AT": "GET", "url": url, "headers": headers, "verify": verify, "proxies": proxies_,
                    "timeout": timeout, "allow_redirects": allow_redirects}
     if typer == 1:
-        session = pycurlToRetb()
+        session = pycurlToRetb(session)
     elif session == None:
         session = requests.session()
     e = None
