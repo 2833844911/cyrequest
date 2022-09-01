@@ -1,9 +1,11 @@
-README
 # cyrequest文档
 cyrequest可以实现自动试错，代理池管理的同步和异步请求的包，可以让我们能够更加简单的实现大批量请求
 
+可以切换pycurl或者requests请求发送信息
 
-## 发送同步GET请求
+pycurl使用requests的session不会有效果
+
+## 发送同步GET请求(requests发送)
 ```python
 from cyrequest import cyRequest
 req = cyRequest.get("http://www.baidu.com")
@@ -11,6 +13,14 @@ req.response.encoding = 'utf-8'
 print(req.response.text)
 ```
 
+## 发送同步GET请求(pycurl发送)
+```python
+from cyrequest import cyRequest
+# typer=0 是requests发送 typer=1是pycurl发送 下面的方法都可以切换
+req = cyRequest.get("http://www.baidu.com", typer=1)
+req.response.encoding = 'utf-8'
+print(req.response.text)
+```
 
 ## 通过requests的session发送get请求
 ```python
