@@ -3,7 +3,6 @@ cyrequest可以实现自动试错，代理池管理的同步和异步请求的�
 
 可以切换pycurl或者requests请求发送信息
 
-pycurl使用requests的session不会有效果
 
 ## 发送同步GET请求(requests发送)
 ```python
