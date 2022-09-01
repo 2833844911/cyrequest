@@ -10,6 +10,7 @@ from requests_futures.sessions import FuturesSession
 import requests
 import re
 from queue import Queue
+from cyrequest._pycurlToRe import pycurlToRe, pycurlToRetb
 
 
 class _request:
@@ -32,7 +33,7 @@ class _error:
 
 class cyRequest:
     def __init__(self, headers=None, cookie=None, verify=True, proxies=None, errback=None, errNum=1, max_workers=8,
-                 session=None):
+                 session=None, typer=0):
         '''
 
         :param headers:请求头的设置
@@ -43,14 +44,18 @@ class cyRequest:
         :param errNum: 设置最大重试次数
         :param max_workers: 设置最大异步数量
         :param session: 输入requests.session会话
+        :param typer: 切换pycurl或者requests
         '''
         self.responeList = []
         self.requestList = []
         self.errNum = errNum
         self.asnum = max_workers
-        self.session = FuturesSession(max_workers=max_workers, session=session)
+        if typer == 1:
+            self.session = pycurlToRe(max_workers=max_workers, session=session)
+        else:
+            self.session = FuturesSession(max_workers=max_workers, session=session)
         if verify != None:
-            self.session.verify = verify
+            self.verify = verify
         if proxies != None:
             self.proxies = proxies
         else:
@@ -74,8 +79,10 @@ class cyRequest:
                       callback, e.requestData['timeout'], e.requestData['allow_redirects'], err, e.errNum, errfun
                       )
 
-    def get(self, url=None, headers=None, verify=True, proxies={},params=None, id=None, callback=None, timeout=20,
+    def get(self, url=None, headers=None, verify=None, proxies={},params=None, id=None, callback=None, timeout=20,
             allow_redirects=True, errback=None, _errNum=0, errfun=None):
+        if verify == None:
+            verify = self.verify
         if type(proxies) == type({}):
             if len(proxies) == 0:
                 proxies = self.proxies
@@ -99,14 +106,16 @@ class cyRequest:
         else:
             proxies_ = proxies
 
-        req = self.session.get(url, headers=headers, verify=verify,params=None, proxies=proxies_, timeout=timeout,
+        req = self.session.get(url, headers=headers, verify=verify,params=params, proxies=proxies_, timeout=timeout,
                                allow_redirects=allow_redirects)
         self.responeList.append([req, callback, id, errback,
                                  {"AT": "GET", "url": url, "headers": headers,"params":params, "verify": verify, "proxies": proxies_,
                                   "timeout": timeout, "allow_redirects": allow_redirects}, errNum, errfun, proxies])
 
-    def post(self, url=None, data=None, json=None, headers=None, verify=True, proxies={}, id=None, callback=None,
+    def post(self, url=None, data=None, json=None, headers=None, verify=None, proxies={}, id=None, callback=None,
              timeout=20, allow_redirects=True, errback=None, _errNum=0, errfun=None):
+        if verify == None:
+            verify = self.verify
         if type(proxies) == type({}):
             if len(proxies) == 0:
                 proxies = self.proxies
@@ -152,9 +161,9 @@ class cyRequest:
         while len(self.responeList + self.requestList):
             self._pushRequest()
             deleList = []
-
+            if 'updata' in dir(self.session):
+                self.session.updata()
             for index, (req, callback, id, err, requestData, errNum, errfun, proxies) in enumerate(self.responeList):
-
                 if req._state == "FINISHED":
                     if 'https' in requestData['proxies']:
                         proxiesstr_ = "https"+requestData["proxies"]['https'][4:]
@@ -195,6 +204,8 @@ class cyRequest:
     def adyield(self):
         while len(self.responeList) + len(self.requestList):
             self._pushRequest()
+            if 'updata' in dir(self.session):
+                self.session.updata()
             deleList = []
             for index, (req, callback, id, err, requestData, errNum, errfun, proxies) in enumerate(self.responeList):
 
@@ -324,7 +335,7 @@ class cyProxy:
 
 
 def get(url=None, headers=None, verify=True, params=None, proxies={}, timeout=20, allow_redirects=True,
-        errback=None, errNum=1, session=None, errfun=None):
+        errback=None, errNum=1, session=None, errfun=None, typer=0):
     if type(proxies) != type({}):
         proxiesstr_ = proxies.get()
         if proxiesstr_[:5] != "https":
@@ -336,7 +347,9 @@ def get(url=None, headers=None, verify=True, params=None, proxies={}, timeout=20
         proxies_ = proxies
     requestData = {"AT": "GET", "url": url, "headers": headers, "verify": verify,"params":params, "proxies": proxies_,
                    "timeout": timeout, "allow_redirects": allow_redirects}
-    if session == None:
+    if typer == 1:
+        session = pycurlToRetb()
+    elif session == None:
         session = requests.session()
     e = None
     for i in range(errNum):
@@ -368,7 +381,7 @@ def get(url=None, headers=None, verify=True, params=None, proxies={}, timeout=20
 
 
 def post(url=None, data=None, json=None, headers=None, verify=True, proxies={}, timeout=20, allow_redirects=True,
-         errback=None, errNum=1, session=None, errfun=None):
+         errback=None, errNum=1, session=None, errfun=None, typer=0):
     if type(proxies) != type({}):
         proxiesstr_ = proxies.get()
         if proxiesstr_[:5] != "https":
@@ -381,7 +394,9 @@ def post(url=None, data=None, json=None, headers=None, verify=True, proxies={}, 
 
     requestData = {"AT": "GET", "url": url, "headers": headers, "verify": verify, "proxies": proxies_,
                    "timeout": timeout, "allow_redirects": allow_redirects}
-    if session == None:
+    if typer == 1:
+        session = pycurlToRetb()
+    elif session == None:
         session = requests.session()
     e = None
     for i in range(errNum):
