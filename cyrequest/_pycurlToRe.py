@@ -76,15 +76,20 @@ class _response:
         return self.html.getcookie(self.encoding)
 
 class _request:
-    def __init__(self,_state, req, html):
+    def __init__(self,_state, req, html, session):
         self.req = req
         self.req._state = _state
         self.html = html
+        self.session = session
+
     @property
     def _state(self):
         return self.req._state
     def result(self):
-        return _response(self.html, self.req)
+        d = _response(self.html, self.req)
+        if self.session != None:
+            self.session.cookies = d.cookies
+        return d
 
 class pycurlToRe:
     def __init__(self, max_workers=None, session=None):
@@ -113,6 +118,19 @@ class pycurlToRe:
 
         if headers != None:
             h = []
+
+            # 获取session的cookie并拼接
+            if self.session != None:
+                _s = self.session.cookies.keys()
+                if len(_s) != 0:
+                    _cookie = []
+                    for _key in _s:
+                        _cookie.append(_key+"="+str(self.session.cookies.get(_key)))
+                    if 'Cookie' in headers:
+                        headers['Cookie'] = '; '.join(_cookie) + '; '+ headers['Cookie']
+                    else:
+                        headers['Cookie'] = '; '.join(_cookie)
+
             for k, v in headers.items():
                 h.append(k+": "+str(v))
             c.setopt(pycurl.HTTPHEADER, h)
@@ -144,7 +162,7 @@ class pycurlToRe:
         c.setopt(pycurl.TIMEOUT, TIMEOUT)
         # 设置url
         c.setopt(pycurl.URL, url)
-        req = _request("RUNING", c, html)
+        req = _request("RUNING", c, html, self.session)
         self.cont.add_handle(c)
         self.cont.handles.append(req)
         return req
@@ -186,6 +204,19 @@ class pycurlToRe:
 
         if headers != None:
             h = []
+
+            # 获取session的cookie并拼接
+            if self.session != None:
+                _s = self.session.cookies.keys()
+                if len(_s) != 0:
+                    _cookie = []
+                    for _key in _s:
+                        _cookie.append(_key + "=" + str(self.session.cookies.get(_key)))
+                    if 'Cookie' in headers:
+                        headers['Cookie'] = '; '.join(_cookie) + '; ' + headers['Cookie']
+                    else:
+                        headers['Cookie'] = '; '.join(_cookie)
+
             for k, v in headers.items():
                 h.append(k+": "+str(v))
             c.setopt(pycurl.HTTPHEADER, h)
@@ -225,7 +256,7 @@ class pycurlToRe:
         c.setopt(pycurl.TIMEOUT, TIMEOUT)
         # 设置url
         c.setopt(pycurl.URL, url)
-        req = _request("RUNING", c, html)
+        req = _request("RUNING", c, html, self.session)
         self.cont.add_handle(c)
         self.cont.handles.append(req)
         return req
@@ -250,6 +281,8 @@ class pycurlToRe:
             j -= 1
 
 class pycurlToRetb:
+    def __init__(self, session):
+        self.session = session
 
     def get(self, url=None, headers=None, verify=None, params=None, proxies=None, timeout=None,
                                allow_redirects=None):
@@ -272,6 +305,19 @@ class pycurlToRetb:
 
         if headers != None:
             h = []
+
+            # 获取session的cookie并拼接
+            if self.session != None:
+                _s = self.session.cookies.keys()
+                if len(_s) != 0:
+                    _cookie = []
+                    for _key in _s:
+                        _cookie.append(_key + "=" + str(self.session.cookies.get(_key)))
+                    if 'Cookie' in headers:
+                        headers['Cookie'] = '; '.join(_cookie) + '; ' + headers['Cookie']
+                    else:
+                        headers['Cookie'] = '; '.join(_cookie)
+
             for k, v in headers.items():
                 h.append(k+": "+str(v))
             c.setopt(pycurl.HTTPHEADER, h)
@@ -303,7 +349,7 @@ class pycurlToRetb:
         c.setopt(pycurl.TIMEOUT, TIMEOUT)
         # 设置url
         c.setopt(pycurl.URL, url)
-        req = _request("RUNING", c, html)
+        req = _request("RUNING", c, html, self.session)
 
         c.perform()
         return req.result()
@@ -333,6 +379,19 @@ class pycurlToRetb:
 
         if headers != None:
             h = []
+
+            # 获取session的cookie并拼接
+            if self.session != None:
+                _s = self.session.cookies.keys()
+                if len(_s) != 0:
+                    _cookie = []
+                    for _key in _s:
+                        _cookie.append(_key + "=" + str(self.session.cookies.get(_key)))
+                    if 'Cookie' in headers:
+                        headers['Cookie'] = '; '.join(_cookie) + '; ' + headers['Cookie']
+                    else:
+                        headers['Cookie'] = '; '.join(_cookie)
+
             for k, v in headers.items():
                 h.append(k+": "+str(v))
             c.setopt(pycurl.HTTPHEADER, h)
@@ -372,7 +431,8 @@ class pycurlToRetb:
         c.setopt(pycurl.TIMEOUT, TIMEOUT)
         # 设置url
         c.setopt(pycurl.URL, url)
-        req = _request("RUNING", c, html)
+        req = _request("RUNING", c, html, self.session)
+        c.perform()
         return req.result()
 
 
