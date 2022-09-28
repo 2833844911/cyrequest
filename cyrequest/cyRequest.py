@@ -88,6 +88,7 @@ class cyRequest:
                 proxies = self.proxies
         self.requestList.append(
             ["GET", url, headers,params, verify, proxies, id, callback, timeout, allow_redirects, errback, _errNum, errfun])
+        self._pushRequest()
 
     def _get(self, url=None, headers=None, params=None, verify=True, proxies=None, id=None, callback=None, timeout=20,
              allow_redirects=True, errback=None, errNum=None, errfun=None):
@@ -122,6 +123,7 @@ class cyRequest:
         self.requestList.append(
             ["POST", url, data, json, headers, verify, proxies, id, callback, timeout, allow_redirects, errback, _errNum,
              errfun])
+        self._pushRequest()
 
     def _post(self, url=None, data=None, json=None, headers=None, verify=True, proxies=None, id=None, callback=None,
               timeout=20, allow_redirects=True, errback=None, errNum=None, errfun=None):
